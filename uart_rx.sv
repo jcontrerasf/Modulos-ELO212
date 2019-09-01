@@ -75,6 +75,7 @@ module uart_rx_ctrl
  //Declarations:------------------------------
  
  logic [7:0] rojo, verde, azul;
+ logic [7:0] nextrojo, nextverde, nextazul;
 
  //FSM states type:
  enum logic [2:0] {Start, Wait_RED, Store_RED, Wait_GREEN, Store_GREEN, Wait_BLUE, Store_BLUE, Save_pixel} state, next_state;
@@ -82,26 +83,32 @@ module uart_rx_ctrl
  //Statements:--------------------------------
 
  //FSM state register:
-always@(posedge clock or posedge reset)
+always@(posedge clock or posedge reset) begin
+        rojo <= nextrojo;
+        verde <= nextverde;
+        azul <= nextazul;
     	if(reset)
-    		{state, salida} <= {Wait_RED, 24'b0};
+    		state <= Wait_RED;
     	else
-    		{state, salida} <= {next_state, {rojo, verde, azul}};
+    		state <= next_state;		
+ end
 
  //FSM combinational logic:
  always_comb begin
  
  next_state = state;
- rojo = rojo;
- verde = verde;
- azul = azul;
+ nextrojo = rojo;
+ nextverde = verde;
+ nextazul = azul;
  listo = 1'b0;
+ 
+ salida = {rojo,verde,azul};
 
 	case (state)
 	   Start: begin
-	       rojo = 8'b0;
-	       verde = 8'b0;
-	       azul = 8'b0;
+	       nextrojo = 8'b0;
+	       nextverde = 8'b0;
+	       nextazul = 8'b0;
 	       next_state = Wait_RED;
 	   end
 		Wait_RED: begin
@@ -112,7 +119,7 @@ always@(posedge clock or posedge reset)
  
 		Store_RED: begin
 		  next_state = Wait_GREEN;
-		  rojo = rx_data;
+		  nextrojo = rx_data;
 		end
  
 		Wait_GREEN: begin
@@ -123,7 +130,7 @@ always@(posedge clock or posedge reset)
 		
 		Store_GREEN: begin
 		  next_state = Wait_BLUE;
-		  verde = rx_data;
+		  nextverde = rx_data;
 		end
 		
 		Wait_BLUE: begin
@@ -133,10 +140,10 @@ always@(posedge clock or posedge reset)
 		
 		Store_BLUE: begin
 		  next_state = Save_pixel;
-		  azul = rx_data;
+		  nextazul = rx_data;
 		end
 		Save_pixel: begin
-		  next_state = Start;
+		  next_state = Wait_RED;
 		  listo = 1'b1;
 		end
 		
