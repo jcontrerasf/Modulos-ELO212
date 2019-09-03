@@ -22,16 +22,22 @@
 
 module dithering(
     input logic  hc,vc,SW,
-    input logic [1:0] rms,gms,bms,
-    input logic [3:0] CER,CEG,CEB,
-    output logic [3:0] CR,CG,CB
+    input logic [23:0] entrada,
+    output logic [23:0] salida
     );
     
+    logic [1:0] rms,gms,bms;
+    logic [3:0] CER,CEG,CEB;
+    logic [3:0] CR,CG,CB;
     
     localparam a=2'd0;
     localparam b=2'd2;
     localparam c=2'd3;
-    localparam d=2'd1; 
+    localparam d=2'd1;
+    
+    assign {CER,CEG,CEB} = {entrada[23:20],entrada[15:12],entrada[7:4]};
+    assign {rms,gms,bms} = {entrada[19:18],entrada[11:10],entrada[3:2]};
+    assign salida = {CR,entrada[19:16],CG,entrada[11:8],CB,entrada[3:0]}; 
     
     
     always_comb begin

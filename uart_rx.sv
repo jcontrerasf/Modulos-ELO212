@@ -5,11 +5,12 @@ module uart_rx_main(
     input logic uart_in_cable, reset, //reset con logica positiva
     input logic clock, //reloj de 100MHZ     IMPORTANTE!!!
     output logic [23:0] salida,
-    output logic listo
+    output logic listo,
+    output logic [17:0] direccion
 );
 
 
-    logic reloj, baud, baud8, ready;
+    logic reloj, baud8;
     logic [7:0] out;
     
     reg rx_ready;
@@ -17,7 +18,9 @@ module uart_rx_main(
 	wire rx_ready_pre;
 
 
-uart_rx_ctrl ctrl(.clock(clock),.reset(~reset),.rx_ready(rx_ready),.rx_data(out),.salida(salida),.listo(listo));
+//uart_rx_ctrl ctrl(.clock(clock),.reset(~reset),.rx_ready(rx_ready),.rx_data(out),.salida(salida),.listo(listo));
+
+MagicA MagicA(.clk(clock),.ready(rx_ready),.color(out),.colores(salida),.enable(listo),.direccion(direccion)); 
 
 uart_baud_tick_gen #(
 		.CLK_FREQUENCY(100000000),
@@ -31,7 +34,7 @@ uart_baud_tick_gen #(
 	
 	uart_rx uart_rx_blk (
 		.clk(clock),
-		.reset(~reset),
+		.reset(reset),
 		.baud8_tick(baud8),
 		.rx(uart_in_cable),
 		.rx_data(out),
@@ -49,7 +52,7 @@ endmodule
 
 //////////////////////////////////////////////////////////////////////////////////
 // Company: UTFSM
-// Engineer: Julio Contreras
+// Engineer: Julius Constreiras Diuca AKA: el chupa
 // 
 // Create Date: 28.08.2019 00:00:00
 // Module Name: uart_rx_ctrl
@@ -88,7 +91,7 @@ always@(posedge clock or posedge reset) begin
         verde <= nextverde;
         azul <= nextazul;
     	if(reset)
-    		state <= Wait_RED;
+    		state <= Start;
     	else
     		state <= next_state;		
  end
@@ -106,9 +109,9 @@ always@(posedge clock or posedge reset) begin
 
 	case (state)
 	   Start: begin
-	       nextrojo = 8'b0;
-	       nextverde = 8'b0;
-	       nextazul = 8'b0;
+//	       nextrojo = 8'b0;
+//	       nextverde = 8'b0;
+//	       nextazul = 8'b0;
 	       next_state = Wait_RED;
 	   end
 		Wait_RED: begin
@@ -118,8 +121,9 @@ always@(posedge clock or posedge reset) begin
 		end
  
 		Store_RED: begin
-		  next_state = Wait_GREEN;
 		  nextrojo = rx_data;
+		  next_state = Wait_GREEN;
+		  
 		end
  
 		Wait_GREEN: begin
@@ -129,8 +133,9 @@ always@(posedge clock or posedge reset) begin
 		end
 		
 		Store_GREEN: begin
-		  next_state = Wait_BLUE;
 		  nextverde = rx_data;
+		  next_state = Wait_BLUE;
+		  
 		end
 		
 		Wait_BLUE: begin
@@ -139,12 +144,14 @@ always@(posedge clock or posedge reset) begin
 		end
 		
 		Store_BLUE: begin
-		  next_state = Save_pixel;
 		  nextazul = rx_data;
+		  next_state = Save_pixel;
+		  
 		end
 		Save_pixel: begin
-		  next_state = Wait_RED;
 		  listo = 1'b1;
+		  next_state = Wait_RED;
+		  
 		end
 		
 		

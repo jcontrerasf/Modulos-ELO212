@@ -18,7 +18,7 @@ module driver_vga_1024x768(
 	input clk_vga,                      // 82 MHz !
 	output hs, vs, 
 	output [11:0] hc_visible,
-	output [10:0] vc_visible
+	output [11:0] vc_visible
 	); 
 
     //modificando para 1024x768

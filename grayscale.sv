@@ -25,14 +25,13 @@ module grayscale(
     output logic [23:0] pix_out
     );
     
-    logic [7:0] total,int1,int2,int3,prom;
-    assign total = pix_in[23:16]+pix_in[15:8]+pix_in[7:0];
-    assign int1 = total >> 1;
-    assign int2 = total >> 2;
-    assign int3 = int1 + int2;
-    assign prom = int3 >> 1;
+    logic [7:0] decB,decG,decR,prom;
+    assign decB = ((pix_in[7:0] >> 3) + (pix_in[7:0] >> 4)) >> 1;
+    assign decR = ((pix_in[23:16] >> 3) + (pix_in[23:16] >> 4)) >> 1;
+    assign decG = ((pix_in[15:8] >> 3) + (pix_in[15:8] >> 4)) >> 1;
+    assign prom = decR*3+decG*6+decB;
     
-    assign pix_out = {prom,prom,prom};
+    assign pix_out = {prom[7:0],prom[7:0],prom[7:0]};
    
     
 endmodule
